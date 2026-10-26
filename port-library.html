@@ -1,0 +1,73 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DELTARUNE · Port library</title><style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#09090d;color:#f3f3f7;font:15px Arial,sans-serif}main{width:min(1080px,100%);margin:auto;padding:48px 24px 80px}.eyebrow{font-size:11px;letter-spacing:3px;color:#ffe06b;font-weight:bold}h1{font-size:38px;letter-spacing:-1px;margin:14px 0}p{color:#a5a5b3;line-height:1.6}h2{font-size:17px;margin:34px 0 16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}button{font:inherit;cursor:pointer;color:#f3f3f7;text-align:left;padding:22px;background:#13131b;border:1px solid #30303e;border-radius:12px;min-height:142px;transition:background .15s,border-color .15s}button:hover{background:#1c1c27;border-color:#ffe06b}button:focus-visible{outline:2px solid #ffe06b;outline-offset:3px}button:disabled{opacity:.45;cursor:wait}.number{display:block;color:#ffe06b;font-size:11px;letter-spacing:1.5px;margin-bottom:15px}button strong{display:block;font-size:19px}button small{display:block;color:#9b9bac;margin-top:10px}#status{min-height:24px;color:#ffe06b}.credit{position:fixed;right:12px;bottom:12px;z-index:2147483647;opacity:.5;color:white;font:9px/1.6 PortPixel,monospace;pointer-events:none;user-select:none;white-space:nowrap}@media(max-width:550px){main{padding-top:28px}h1{font-size:29px}.grid{grid-template-columns:1fr 1fr}button{padding:16px}button strong{font-size:16px}}
+</style></head><body><main id="library"><span class="eyebrow">MIMIC765 / SEKTA</span><h1>DELTARUNE port library</h1><p>Choose a chapter or fangame. Progress stays in this browser; use the in-game save points and save export controls.</p><p id="status" role="status"></p><h2>Standalone chapters</h2><div class="grid" id="chapters"></div><h2>Chapter 5 mods</h2><div class="grid" id="mods"></div><h2>More fangames</h2><div class="grid" id="fangames"></div><p>Original DELTARUNE by Toby Fox and contributors. Each port retains its game and mod authors’ credits.</p></main><div class="credit">* Port by MIMIC765/Sekta</div><script>
+// Set false to skip this picker entirely and start DEFAULT_PORT.
+const ENABLE_CHAPTER_PICKER = true;
+const DEFAULT_PORT = 'Chapter-1';
+// Direct chapter/port loader: no chapter picker is included here.
+// Use from an HTML page in response to your own button/menu.
+// Original game authors and the on-screen port credit remain in each launcher.
+const PORTS = {
+  "Flirt": {
+    "base": "https://cdn.jsdelivr.net/gh/sektanaymikon/deltarune-flirt-web-a@ff5decd3b5bf47163f3a8ecbb6dfe96b2310874f/",
+    "variable": "FLIRT_BASE_URL",
+    "repository": "https://github.com/sektanaymikon/deltarune-flirt-web-a"
+  },
+  "Dojo-Plus": {
+    "base": "https://cdn.jsdelivr.net/gh/sektanaymikon/dojo-plus-web-a@40f4ad568defb443e196b9bd4fec58cab3294420/",
+    "variable": "DOJO_BASE_URL",
+    "repository": "https://github.com/sektanaymikon/dojo-plus-web-a"
+  },
+  "FamilyRUNE": {
+    "base": "https://cdn.jsdelivr.net/gh/sektanaymikon/familyrune-web-a@c6b74c972d54a93fd91dd9b8952a6723a78d3d69/",
+    "variable": "FAMILYRUNE_BASE_URL",
+    "repository": "https://github.com/sektanaymikon/familyrune-web-a"
+  },
+  "Retro-NEO": {
+    "base": "https://cdn.jsdelivr.net/gh/sektanaymikon/retro-neo-web@5db8ecf0af4a0909f8127071ccce567aa2bde33d/",
+    "variable": "RETRO_NEO_BASE_URL",
+    "repository": "https://github.com/sektanaymikon/retro-neo-web"
+  },
+  "Chapter-1": {
+    "base": "https://cdn.jsdelivr.net/gh/sektanaymikon/deltarune-chapter-1-web@11dd0365e82940ee5523530e579a6466a8d09617/",
+    "variable": "CHAPTER_BASE_URL",
+    "repository": "https://github.com/sektanaymikon/deltarune-chapter-1-web"
+  },
+  "Chapter-2": {
+    "base": "https://cdn.jsdelivr.net/gh/sektanaymikon/deltarune-chapter-2-web@1d5211f534288589f1f49434f7cfafb0f5a859c1/",
+    "variable": "CHAPTER_BASE_URL",
+    "repository": "https://github.com/sektanaymikon/deltarune-chapter-2-web"
+  },
+  "Chapter-3": {
+    "base": "https://cdn.jsdelivr.net/gh/sektanaymikon/deltarune-chapter-3-web@1678d4d11dc156bb9175bcd27a7372c0a739f1f3/",
+    "variable": "CHAPTER_BASE_URL",
+    "repository": "https://github.com/sektanaymikon/deltarune-chapter-3-web"
+  },
+  "Chapter-4": {
+    "base": "https://cdn.jsdelivr.net/gh/sektanaymikon/deltarune-chapter-4-web@e73679097f0e770771c36f7191e78f65a101dd0f/",
+    "variable": "CHAPTER_BASE_URL",
+    "repository": "https://github.com/sektanaymikon/deltarune-chapter-4-web"
+  },
+  "Papyrus": {
+    "base": "https://cdn.jsdelivr.net/gh/sektanaymikon/papyrus-web@9ccd64e021a809024d832d7b1cce9228d3fff108/",
+    "variable": "PAPYRUS_BASE_URL",
+    "repository": "https://github.com/sektanaymikon/papyrus-web"
+  }
+};
+async function launchPort(name) {
+ const port=PORTS[name];if(!port)throw Error('Unknown port: '+name);
+ window[port.variable]=port.base;
+ const response=await fetch(port.base+'index.html');
+ if(!response.ok)throw Error('Launcher HTTP '+response.status);
+ const html=await response.text();document.open();document.write(html);document.close();
+}
+
+const font=new FontFace('PortPixel','url('+JSON.stringify(PORTS.Papyrus.base+'port-pixel.ttf')+')');font.load().then(f=>document.fonts.add(f)).catch(()=>{});
+async function openPort(name){document.querySelectorAll('button').forEach(b=>b.disabled=true);document.getElementById('status').textContent='Loading '+name+'…';try{await launchPort(name);}catch(e){document.getElementById('library').hidden=false;document.getElementById('status').textContent=e.message;document.querySelectorAll('button').forEach(b=>b.disabled=false);}}
+if(!ENABLE_CHAPTER_PICKER){document.getElementById('library').hidden=true;openPort(DEFAULT_PORT);}else{
+// BEGIN OPTIONAL CHAPTER PICKER — standalone CodeHS files contain none of this.
+const groups={chapters:[['Chapter-1','CHAPTER 01','Chapter 1','Standalone chapter'],['Chapter-2','CHAPTER 02','Chapter 2','Standalone chapter'],['Chapter-3','CHAPTER 03','Chapter 3','Standalone chapter'],['Chapter-4','CHAPTER 04','Chapter 4','Standalone chapter']],mods:[['Flirt','CHAPTER 05','Ralsei Flirts With Kris','Mod by DuckRoguer'],['Dojo-Plus','CHAPTER 05','Dojo+','Mod by Y114 · Optional all recruits'],['FamilyRUNE','CHAPTER 05','FamilyRUNE','Mod by jacksteinb']],fangames:[['Papyrus','FANGAME','Everyone is Papyrus','By Pancu'],['Retro-NEO','FANGAME','Spamton NEO Retro','By Lily Garcia']]};
+for(const [group,items] of Object.entries(groups))for(const [name,label,title,description] of items){const button=document.createElement('button'),tag=document.createElement('span'),heading=document.createElement('strong'),detail=document.createElement('small');tag.className='number';tag.textContent=label;heading.textContent=title;detail.textContent=description;button.append(tag,heading,detail);button.onclick=()=>openPort(name);document.getElementById(group).append(button);}
+// END OPTIONAL CHAPTER PICKER
+}
+</script></body></html>
